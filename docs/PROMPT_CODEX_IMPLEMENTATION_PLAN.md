@@ -6,19 +6,22 @@ You are the Implementation Engineer for `bussinessmaxprovjp`.
 Read completely, in this order:
 1. `AGENTS.md`
 2. `docs/ROUND2_PRODUCT_SPEC.md`
-3. `docs/DECISION_LOG.md`
-4. `docs/TASKS.md`
+3. `docs/ROUND2_REQUIREMENTS_TRACE.md`
+4. `docs/DECISION_LOG.md`
+5. `docs/TASKS.md`
 
 `docs/ROUND2_PRODUCT_SPEC.md` is FROZEN.
-Decisions D-001 through D-008 are FROZEN.
+Decisions D-001 through D-009 are FROZEN.
 Do not redesign the product and do not add features outside the frozen scope.
+
+`docs/ROUND2_REQUIREMENTS_TRACE.md` explains how the frozen design maps to the official FPT case study and Round 2 deliverables. Some rows are explicitly marked PARTIAL, STRETCH, or GAP ACCEPTED. Do not attempt to close those gaps by expanding scope unless the Team Lead records a new approved decision.
 
 ## Your current task
 Produce a minimal implementation plan for the Round 2 MVP.
 
 DO NOT write product code yet.
 DO NOT create implementation files yet.
-DO NOT change the frozen spec or decision log.
+DO NOT change the frozen spec, requirements trace or decision log.
 
 For each proposed implementation step, state:
 - task ID;
@@ -81,5 +84,10 @@ If fewer files are materially faster and remain testable, explain the simplifica
 
 ## Output
 Return the implementation plan only and stop for Team Lead approval.
+
+At the beginning of your response, explicitly confirm that you read all five mandatory files and briefly state:
+- the required core flow;
+- the difference between product-level eligibility and offer-level feasibility;
+- the known accepted gaps from `ROUND2_REQUIREMENTS_TRACE.md` that you will NOT implement unless separately approved.
 
 Communicate explanations in Vietnamese. Keep code identifiers and filenames in English.
