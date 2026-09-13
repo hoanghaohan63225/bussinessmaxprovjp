@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import base64
+import json
 from pathlib import Path
 
-import streamlit as st
+import streamlit.components.v1 as components
 
 ROOT = Path(__file__).resolve().parent.parent
 MASCOT_DIR = ROOT / "assets" / "mascots"
@@ -21,8 +22,9 @@ def _data_uri(filename: str) -> str:
 def render_mascots() -> None:
     """Render the decorative Tứ Đại Kiki mascot layer.
 
-    This runs after the existing Streamlit app, so it does not alter any
-    buyer-intent, matching, optimisation, testing, or transaction logic.
+    The layer is visual-only: it lives above the Streamlit UI with
+    pointer-events disabled, so it cannot change the B2A pipeline or block
+    any controls. Special pairs only mock-fight when they physically meet.
     """
     uris = {
         "poker": _data_uri("poker.webp"),
@@ -33,194 +35,417 @@ def render_mascots() -> None:
     if not all(uris.values()):
         return
 
-    st.markdown(
-        """
-        <style>
-            /* Retire the old blue CSS mascot without touching app_core.py. */
-            .b2a-bot-stage { display: none !important; }
+    characters = [
+        {
+            "id": "poker",
+            "label": "Poker Kiki",
+            "src": uris["poker"],
+            "size": 110,
+            "x": 0.10,
+            "y": 0.68,
+            "vx": 68,
+            "vy": -31,
+        },
+        {
+            "id": "lead",
+            "label": "Lead Kiki",
+            "src": uris["lead"],
+            "size": 112,
+            "x": 0.80,
+            "y": 0.63,
+            "vx": -63,
+            "vy": -27,
+        },
+        {
+            "id": "red",
+            "label": "Red Kiki",
+            "src": uris["red"],
+            "size": 106,
+            "x": 0.78,
+            "y": 0.20,
+            "vx": -54,
+            "vy": 39,
+        },
+        {
+            "id": "scholar",
+            "label": "Scholar Kiki",
+            "src": uris["scholar"],
+            "size": 104,
+            "x": 0.13,
+            "y": 0.16,
+            "vx": 49,
+            "vy": 43,
+        },
+    ]
 
-            .kiki-stage {
-                position: fixed;
-                inset: 0;
-                z-index: 9997;
-                pointer-events: none;
-                overflow: hidden;
+    config = json.dumps(characters, ensure_ascii=False)
+    html = r"""
+<script>
+(() => {
+    const CHARACTERS = __CHARACTERS__;
+    const parentWindow = window.parent;
+    const doc = parentWindow.document;
+
+    if (parentWindow.__kikiMascotRAF) {
+        parentWindow.cancelAnimationFrame(parentWindow.__kikiMascotRAF);
+        parentWindow.__kikiMascotRAF = null;
+    }
+
+    const oldRoot = doc.getElementById("kiki-mascot-root");
+    if (oldRoot) oldRoot.remove();
+    const oldStyle = doc.getElementById("kiki-mascot-style");
+    if (oldStyle) oldStyle.remove();
+
+    const style = doc.createElement("style");
+    style.id = "kiki-mascot-style";
+    style.textContent = `
+        /* The old blue bot retires. Its four replacements have arrived. */
+        .b2a-bot-stage { display: none !important; }
+
+        #kiki-mascot-root {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            overflow: hidden;
+            pointer-events: none;
+            contain: layout style;
+        }
+
+        .kiki-char {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 108px;
+            height: 108px;
+            will-change: transform;
+            pointer-events: none;
+        }
+
+        .kiki-visual {
+            width: 100%;
+            height: 100%;
+            transform-origin: center bottom;
+            filter: drop-shadow(0 9px 10px rgba(15, 35, 55, .20));
+            will-change: transform;
+        }
+
+        .kiki-visual img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+            animation: kiki-bob 1.05s ease-in-out infinite alternate;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .kiki-char[data-id="red"] .kiki-visual img {
+            animation-duration: .82s;
+        }
+
+        .kiki-char[data-id="scholar"] .kiki-visual img {
+            animation-duration: 1.28s;
+        }
+
+        .kiki-char.fighting .kiki-visual {
+            animation: kiki-fight .16s ease-in-out infinite alternate;
+        }
+
+        .kiki-char.bumped .kiki-visual {
+            animation: kiki-bump .28s ease-out;
+        }
+
+        .kiki-impact {
+            position: fixed;
+            z-index: 10000;
+            pointer-events: none;
+            font: 900 23px/1 system-ui, sans-serif;
+            color: #fff;
+            letter-spacing: .02em;
+            text-shadow:
+                -2px -2px 0 #10243e,
+                 2px -2px 0 #10243e,
+                -2px  2px 0 #10243e,
+                 2px  2px 0 #10243e;
+            animation: kiki-impact .78s cubic-bezier(.2,.9,.3,1) forwards;
+        }
+
+        @keyframes kiki-bob {
+            from { transform: translateY(1px) rotate(-1.2deg); }
+            to   { transform: translateY(-7px) rotate(1.2deg); }
+        }
+
+        @keyframes kiki-fight {
+            from { transform: translate(-5px,-5px) rotate(-11deg) scale(1.12); }
+            to   { transform: translate( 7px, 2px) rotate( 12deg) scale(1.16); }
+        }
+
+        @keyframes kiki-bump {
+            0%   { transform: scale(1); }
+            45%  { transform: scale(.88) rotate(-8deg); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes kiki-impact {
+            0%   { opacity: 0; transform: translate(-50%,-50%) scale(.35) rotate(-14deg); }
+            18%  { opacity: 1; transform: translate(-50%,-60%) scale(1.18) rotate(8deg); }
+            72%  { opacity: 1; transform: translate(-50%,-90%) scale(1) rotate(-4deg); }
+            100% { opacity: 0; transform: translate(-50%,-145%) scale(1.25) rotate(6deg); }
+        }
+
+        @media (max-width: 850px) {
+            .kiki-char { width: 76px !important; height: 76px !important; }
+            .kiki-impact { font-size: 17px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .kiki-visual img { animation-duration: 2.5s; }
+        }
+    `;
+    doc.head.appendChild(style);
+
+    const root = doc.createElement("div");
+    root.id = "kiki-mascot-root";
+    root.setAttribute("aria-hidden", "true");
+    doc.body.appendChild(root);
+
+    const mobile = () => parentWindow.innerWidth <= 850;
+    const viewport = () => ({
+        w: Math.max(320, parentWindow.innerWidth),
+        h: Math.max(320, parentWindow.innerHeight),
+    });
+
+    const now = performance.now();
+    const actors = CHARACTERS.map((c, index) => {
+        const el = doc.createElement("div");
+        el.className = "kiki-char";
+        el.dataset.id = c.id;
+        const size = mobile() ? 76 : c.size;
+        el.style.width = `${size}px`;
+        el.style.height = `${size}px`;
+
+        const visual = doc.createElement("div");
+        visual.className = "kiki-visual";
+        const img = doc.createElement("img");
+        img.src = c.src;
+        img.alt = "";
+        visual.appendChild(img);
+        el.appendChild(visual);
+        root.appendChild(el);
+
+        const vp = viewport();
+        return {
+            ...c,
+            el,
+            visual,
+            size,
+            x: Math.min(vp.w - size - 4, Math.max(4, c.x * vp.w)),
+            y: Math.min(vp.h - size - 4, Math.max(4, c.y * vp.h)),
+            vx: c.vx,
+            vy: c.vy,
+            fightUntil: 0,
+            bumpedUntil: 0,
+            nextTurn: now + 2600 + index * 620,
+        };
+    });
+
+    const pairKey = (a, b) => [a.id, b.id].sort().join("-");
+    const specialPair = (a, b) => {
+        const key = pairKey(a, b);
+        return key === "lead-red" || key === "lead-poker";
+    };
+
+    const pairCooldown = new Map();
+    const collisionCooldown = new Map();
+
+    function center(c) {
+        return { x: c.x + c.size / 2, y: c.y + c.size / 2 };
+    }
+
+    function makeImpact(text, x, y) {
+        const impact = doc.createElement("div");
+        impact.className = "kiki-impact";
+        impact.textContent = text;
+        impact.style.left = `${x}px`;
+        impact.style.top = `${y}px`;
+        root.appendChild(impact);
+        setTimeout(() => impact.remove(), 850);
+    }
+
+    function fightWords(a, b) {
+        const key = pairKey(a, b);
+        if (key === "lead-red") return ["BỐP!", "MEOW!", "GÂU!", "💥"];
+        if (key === "lead-poker") return ["CHÁT!", "ALL IN!", "MEOW!", "💢"];
+        return ["ỤI!", "💫"];
+    }
+
+    function clampSpeed(c, minSpeed = 38, maxSpeed = 82) {
+        const speed = Math.hypot(c.vx, c.vy) || 1;
+        const target = Math.max(minSpeed, Math.min(maxSpeed, speed));
+        c.vx = c.vx / speed * target;
+        c.vy = c.vy / speed * target;
+    }
+
+    function separateAndBounce(a, b, dx, dy, dist, overlap) {
+        const nx = dx / Math.max(dist, 0.001);
+        const ny = dy / Math.max(dist, 0.001);
+        const push = Math.max(2, overlap / 2 + 1);
+        a.x -= nx * push;
+        a.y -= ny * push;
+        b.x += nx * push;
+        b.y += ny * push;
+
+        const av = a.vx * nx + a.vy * ny;
+        const bv = b.vx * nx + b.vy * ny;
+        const impulse = bv - av;
+        a.vx += impulse * nx;
+        a.vy += impulse * ny;
+        b.vx -= impulse * nx;
+        b.vy -= impulse * ny;
+
+        a.vx += -nx * 13;
+        a.vy += -ny * 13;
+        b.vx += nx * 13;
+        b.vy += ny * 13;
+        clampSpeed(a);
+        clampSpeed(b);
+    }
+
+    function startFight(a, b, t) {
+        const key = pairKey(a, b);
+        const lastFight = pairCooldown.get(key) || 0;
+        if (t - lastFight < 5200) return false;
+        pairCooldown.set(key, t);
+
+        a.fightUntil = t + 950;
+        b.fightUntil = t + 950;
+        const ca = center(a);
+        const cb = center(b);
+        const words = fightWords(a, b);
+        makeImpact(words[Math.floor(Math.random() * words.length)], (ca.x + cb.x) / 2, (ca.y + cb.y) / 2 - 18);
+
+        setTimeout(() => {
+            if (!root.isConnected) return;
+            const ca2 = center(a);
+            const cb2 = center(b);
+            const words2 = fightWords(a, b);
+            makeImpact(words2[Math.floor(Math.random() * words2.length)], (ca2.x + cb2.x) / 2, (ca2.y + cb2.y) / 2 - 12);
+        }, 340);
+        return true;
+    }
+
+    function wander(c, t) {
+        if (t < c.nextTurn || t < c.fightUntil) return;
+        c.nextTurn = t + 2400 + Math.random() * 3200;
+        const angle = (Math.random() - .5) * .62;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        const vx = c.vx * cos - c.vy * sin;
+        const vy = c.vx * sin + c.vy * cos;
+        c.vx = vx;
+        c.vy = vy;
+        clampSpeed(c, 42, 76);
+    }
+
+    function mildAttraction(a, b, dt, t) {
+        if (!specialPair(a, b)) return;
+        const key = pairKey(a, b);
+        if (t - (pairCooldown.get(key) || 0) < 5200) return;
+        const ca = center(a);
+        const cb = center(b);
+        const dx = cb.x - ca.x;
+        const dy = cb.y - ca.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 170 || dist > 285) return;
+        const strength = 5.2 * dt;
+        a.vx += dx / dist * strength;
+        a.vy += dy / dist * strength;
+        b.vx -= dx / dist * strength;
+        b.vy -= dy / dist * strength;
+        clampSpeed(a, 38, 80);
+        clampSpeed(b, 38, 80);
+    }
+
+    function handleCollisions(t) {
+        for (let i = 0; i < actors.length; i++) {
+            for (let j = i + 1; j < actors.length; j++) {
+                const a = actors[i];
+                const b = actors[j];
+                const ca = center(a);
+                const cb = center(b);
+                const dx = cb.x - ca.x;
+                const dy = cb.y - ca.y;
+                const dist = Math.hypot(dx, dy) || 0.001;
+                const minDist = (a.size + b.size) * 0.38;
+                if (dist >= minDist) continue;
+
+                const key = pairKey(a, b);
+                const overlap = minDist - dist;
+                separateAndBounce(a, b, dx, dy, dist, overlap);
+
+                if (t - (collisionCooldown.get(key) || 0) < 520) continue;
+                collisionCooldown.set(key, t);
+
+                if (specialPair(a, b)) {
+                    startFight(a, b, t);
+                } else {
+                    a.bumpedUntil = t + 300;
+                    b.bumpedUntil = t + 300;
+                    makeImpact("ỤI!", (ca.x + cb.x) / 2, (ca.y + cb.y) / 2 - 10);
+                }
+            }
+        }
+    }
+
+    let last = performance.now();
+    function frame(t) {
+        if (!root.isConnected) return;
+        const dt = Math.min(.034, Math.max(.001, (t - last) / 1000));
+        last = t;
+        const vp = viewport();
+
+        for (let i = 0; i < actors.length; i++) {
+            for (let j = i + 1; j < actors.length; j++) {
+                mildAttraction(actors[i], actors[j], dt, t);
+            }
+        }
+
+        actors.forEach(c => {
+            const desiredSize = mobile() ? 76 : c.size;
+            if (desiredSize !== c.size) {
+                c.size = desiredSize;
+                c.el.style.width = `${c.size}px`;
+                c.el.style.height = `${c.size}px`;
             }
 
-            .kiki-walker {
-                position: absolute;
-                width: clamp(82px, 5.2vw, 104px);
-                height: clamp(86px, 5.5vw, 110px);
-                filter: drop-shadow(0 9px 9px rgba(15, 35, 55, 0.18));
-                will-change: left, top;
-            }
+            wander(c, t);
+            const fightSlow = t < c.fightUntil ? .42 : 1;
+            c.x += c.vx * dt * fightSlow;
+            c.y += c.vy * dt * fightSlow;
 
-            .kiki-walker img {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-                display: block;
-                transform-origin: center bottom;
-                will-change: transform;
-            }
+            const maxX = Math.max(4, vp.w - c.size - 4);
+            const maxY = Math.max(4, vp.h - c.size - 4);
+            if (c.x <= 4) { c.x = 4; c.vx = Math.abs(c.vx); }
+            if (c.x >= maxX) { c.x = maxX; c.vx = -Math.abs(c.vx); }
+            if (c.y <= 4) { c.y = 4; c.vy = Math.abs(c.vy); }
+            if (c.y >= maxY) { c.y = maxY; c.vy = -Math.abs(c.vy); }
+        });
 
-            .path-poker { animation: path-poker 32s linear infinite; }
-            .path-lead { animation: path-lead 32s linear infinite; }
-            .path-red { animation: path-red 32s linear infinite; }
-            .path-scholar { animation: path-scholar 38s linear infinite; }
+        handleCollisions(t);
 
-            .kiki-poker { animation: poker-antics 32s linear infinite; }
-            .kiki-lead { animation: lead-antics 32s linear infinite; }
-            .kiki-red { animation: red-antics 32s linear infinite; }
-            .kiki-scholar { animation: scholar-antics 38s linear infinite; }
+        actors.forEach(c => {
+            c.el.classList.toggle("fighting", t < c.fightUntil);
+            c.el.classList.toggle("bumped", t < c.bumpedUntil);
+            c.el.style.transform = `translate3d(${c.x}px, ${c.y}px, 0)`;
+            c.visual.style.transform = `scaleX(${c.vx < 0 ? -1 : 1})`;
+        });
 
-            /* Red + Lead deliberately converge around 30%. */
-            @keyframes path-red {
-                0% { left:-7vw; top:72vh; }
-                12% { left:13vw; top:62vh; }
-                22% { left:34vw; top:70vh; }
-                28% { left:48vw; top:63vh; }
-                35% { left:51vw; top:63vh; }
-                45% { left:72vw; top:48vh; }
-                58% { left:91vw; top:72vh; }
-                70% { left:72vw; top:18vh; }
-                82% { left:38vw; top:12vh; }
-                92% { left:10vw; top:31vh; }
-                100% { left:-7vw; top:72vh; }
-            }
+        parentWindow.__kikiMascotRAF = parentWindow.requestAnimationFrame(frame);
+    }
 
-            @keyframes path-lead {
-                0% { left:91vw; top:16vh; }
-                12% { left:78vw; top:38vh; }
-                22% { left:67vw; top:56vh; }
-                28% { left:53vw; top:63vh; }
-                35% { left:50vw; top:63vh; }
-                47% { left:65vw; top:80vh; }
-                58% { left:48vw; top:52vh; }
-                65% { left:32vw; top:34vh; }
-                72% { left:29vw; top:34vh; }
-                82% { left:15vw; top:16vh; }
-                92% { left:55vw; top:9vh; }
-                100% { left:91vw; top:16vh; }
-            }
+    parentWindow.__kikiMascotRAF = parentWindow.requestAnimationFrame(frame);
+})();
+</script>
+""".replace("__CHARACTERS__", config)
 
-            /* Lead + Poker deliberately converge around 68-72%. */
-            @keyframes path-poker {
-                0% { left:66vw; top:84vh; }
-                12% { left:88vw; top:66vh; }
-                26% { left:86vw; top:22vh; }
-                40% { left:60vw; top:12vh; }
-                54% { left:44vw; top:25vh; }
-                65% { left:27vw; top:34vh; }
-                72% { left:31vw; top:34vh; }
-                82% { left:8vw; top:53vh; }
-                92% { left:34vw; top:78vh; }
-                100% { left:66vw; top:84vh; }
-            }
-
-            @keyframes path-scholar {
-                0% { left:8vw; top:11vh; }
-                14% { left:25vw; top:27vh; }
-                28% { left:10vw; top:50vh; }
-                42% { left:37vw; top:81vh; }
-                57% { left:73vw; top:73vh; }
-                70% { left:88vw; top:40vh; }
-                83% { left:67vw; top:14vh; }
-                92% { left:35vw; top:21vh; }
-                100% { left:8vw; top:11vh; }
-            }
-
-            /* Most of the cycle is a gentle walk/bob. Fight windows add comic lunges. */
-            @keyframes red-antics {
-                0%,24%,39%,100% { transform:translateY(0) rotate(-2deg) scale(1); }
-                6%,18%,44%,62%,80%,94% { transform:translateY(-7px) rotate(2deg) scale(1.02); }
-                28% { transform:translate(8px,-8px) rotate(-14deg) scale(1.12); }
-                30% { transform:translate(18px,2px) rotate(15deg) scale(1.15); }
-                32% { transform:translate(5px,-11px) rotate(-11deg) scale(1.12); }
-                35% { transform:translate(17px,0) rotate(12deg) scale(1.10); }
-            }
-
-            @keyframes lead-antics {
-                0%,24%,39%,61%,76%,100% { transform:translateY(0) rotate(1deg) scale(1); }
-                7%,18%,47%,55%,84%,94% { transform:translateY(-6px) rotate(-2deg) scale(1.02); }
-                28% { transform:translate(-6px,-5px) rotate(12deg) scale(1.10); }
-                30% { transform:translate(-16px,2px) rotate(-14deg) scale(1.14); }
-                33% { transform:translate(-4px,-9px) rotate(10deg) scale(1.11); }
-                35% { transform:translate(-15px,0) rotate(-11deg) scale(1.10); }
-                65% { transform:translate(7px,-5px) rotate(-10deg) scale(1.10); }
-                68% { transform:translate(16px,2px) rotate(13deg) scale(1.14); }
-                70% { transform:translate(4px,-9px) rotate(-12deg) scale(1.11); }
-                72% { transform:translate(15px,0) rotate(10deg) scale(1.10); }
-            }
-
-            @keyframes poker-antics {
-                0%,60%,77%,100% { transform:translateY(0) rotate(-1deg) scale(1); }
-                7%,19%,34%,49%,84%,94% { transform:translateY(-6px) rotate(2deg) scale(1.02); }
-                65% { transform:translate(-8px,-5px) rotate(12deg) scale(1.10); }
-                68% { transform:translate(-17px,2px) rotate(-14deg) scale(1.14); }
-                70% { transform:translate(-5px,-9px) rotate(11deg) scale(1.12); }
-                72% { transform:translate(-16px,0) rotate(-10deg) scale(1.10); }
-            }
-
-            @keyframes scholar-antics {
-                0%,100% { transform:translateY(0) rotate(-1deg); }
-                25% { transform:translateY(-5px) rotate(1deg); }
-                50% { transform:translateY(0) rotate(2deg); }
-                75% { transform:translateY(-6px) rotate(-2deg); }
-            }
-
-            .impact {
-                position: fixed;
-                z-index: 9999;
-                opacity: 0;
-                font-size: 2rem;
-                pointer-events: none;
-                filter: drop-shadow(0 3px 3px rgba(0,0,0,0.22));
-            }
-            .impact-red-lead { animation: impact-red-lead 32s linear infinite; }
-            .impact-poker-lead { animation: impact-poker-lead 32s linear infinite; }
-
-            @keyframes impact-red-lead {
-                0%,27%,35.5%,100% { opacity:0; left:52vw; top:61vh; transform:scale(.4) rotate(-15deg); }
-                29%,32%,34% { opacity:1; left:52vw; top:61vh; transform:scale(1.15) rotate(10deg); }
-                30.5%,33% { opacity:.2; left:52vw; top:61vh; transform:scale(.7) rotate(-12deg); }
-            }
-
-            @keyframes impact-poker-lead {
-                0%,64%,72.5%,100% { opacity:0; left:30vw; top:31vh; transform:scale(.4) rotate(15deg); }
-                66%,69%,71% { opacity:1; left:30vw; top:31vh; transform:scale(1.15) rotate(-10deg); }
-                67.5%,70% { opacity:.2; left:30vw; top:31vh; transform:scale(.7) rotate(12deg); }
-            }
-
-            @media (max-width:850px) {
-                .kiki-walker { width:68px; height:72px; }
-                .impact { font-size:1.35rem; }
-            }
-
-            @media (prefers-reduced-motion:reduce) {
-                .path-poker,.path-lead,.path-red,.path-scholar,
-                .kiki-poker,.kiki-lead,.kiki-red,.kiki-scholar,
-                .impact-red-lead,.impact-poker-lead { animation:none !important; }
-                .path-scholar { left:8vw; top:82vh; }
-                .path-red { left:25vw; top:82vh; }
-                .path-lead { left:42vw; top:82vh; }
-                .path-poker { left:59vw; top:82vh; }
-            }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        f"""
-        <div class="kiki-stage" aria-hidden="true">
-            <div class="kiki-walker path-poker"><img class="kiki-poker" src="{uris['poker']}" alt="" /></div>
-            <div class="kiki-walker path-lead"><img class="kiki-lead" src="{uris['lead']}" alt="" /></div>
-            <div class="kiki-walker path-red"><img class="kiki-red" src="{uris['red']}" alt="" /></div>
-            <div class="kiki-walker path-scholar"><img class="kiki-scholar" src="{uris['scholar']}" alt="" /></div>
-            <div class="impact impact-red-lead">💥</div>
-            <div class="impact impact-poker-lead">💢</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    components.html(html, height=0, width=0)
