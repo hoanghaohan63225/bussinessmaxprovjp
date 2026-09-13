@@ -30,7 +30,7 @@ Approved by D-010.
 
 ## T5 — MVP Build
 Owner: ChatGPT temporary implementation takeover after Codex quota/network interruption
-Status: INTERACTIVE RUNTIME PASS / FINAL LATEST-BUILD PYTEST PENDING
+Status: DONE
 Evidence: `docs/EMERGENCY_BUILD_REPORT.md`, `docs/RUNTIME_VERIFICATION.md`
 
 Committed implementation:
@@ -44,52 +44,44 @@ Committed implementation:
 - `tests/test_core.py`
 - `README.md`
 
-Runtime evidence already confirmed on the user machine:
+Final user-machine runtime evidence on the latest build:
 - Python 3.14.5;
 - dependencies installed successfully;
+- `py -m pytest -q` -> **15 passed in 0.73s**;
 - Streamlit launches at `localhost:8501` without an API key;
-- latest-build default gaming flow returns a feasible B2A offer;
+- default gaming flow returns a feasible B2A offer;
+- hard gaming matching excludes non-gaming `CreatorPro 15`;
 - explicit buyer acceptance returns synthetic `transaction_ready`;
-- latest-build catalogue matching excludes `CreatorPro 15` from a hard gaming request after the gaming-capability fix;
 - impossible request returns explicit `no_feasible_offer` without crashing;
 - changing request after an accepted transaction clears stale accepted state.
 
-One closure action remains:
-- run `py -m pytest -q` on the latest downloaded ZIP after the gaming-capability regression fix.
-
 ## T6 — Code and Logic Review
 Owner: ChatGPT Red Team / QA
-Status: STATIC + INTERACTIVE PASS / FINAL LATEST-BUILD PYTEST PENDING
+Status: DONE
 Output: `docs/REVIEW_LOG.md`
 
-Review/fixes already applied:
-- unsupported LLM hard requirements fail closed as unresolved;
-- neutral defaults for missing LLM preference dimensions are recorded as assumptions;
-- non-finite numeric intent values are rejected;
-- reruns clear stale pipeline/transaction state;
-- optional API key can come from environment variables or Streamlit secrets;
-- hard gaming capability now requires explicit `gaming` or `gpu` catalogue evidence;
-- regression tests cover safety behaviour and explicit no-feasible state;
-- runtime screenshots confirm success, transaction, failure and stale-state flows.
-
-T6 closes after the latest-build pytest command passes once locally.
+All currently identified P0/P1 issues were fixed and verified by regression tests and/or latest-build interactive runtime checks.
 
 ## T7 — Fix Approved Issues
 Owner: ChatGPT implementation pass after QA findings
-Status: DONE FOR CURRENT P0/P1 FINDINGS
-All currently identified P0/P1 implementation findings have been fixed without expanding frozen product scope. Re-open only if the final latest-build pytest or submission rehearsal exposes a new blocking issue.
+Status: DONE
+All approved P0/P1 implementation fixes were applied without expanding frozen product scope. Re-open only if submission rehearsal exposes a new blocking issue.
 
 ## T8 — Submission Documentation
 Owner: ChatGPT
-Status: IN PROGRESS
+Status: IN PROGRESS — NEXT
 Existing outputs:
 - `README.md`
 - `docs/SUBMISSION_CHECKLIST.md`
 - `pitch/PITCH_CONTENT.md`
 
-Final docs must cover architecture, technologies/APIs, setup/run instructions, synthetic-data disclosure, limitations, deployment/scalability, market strategy, adaptation to FPT full brief and secrets handling.
+Next focus:
+- final README/document consistency pass;
+- final submission checklist completion;
+- pitch/demo narrative refinement;
+- repository hygiene / secrets / completeness check.
 
 ## T9 — Final Verification
 Owner: User + ChatGPT checklist support
 Status: TODO
-Run the final latest-build pytest, rehearse the primary demo once, confirm repository completeness/secrets safety and submit through the official channel.
+Rehearse the primary demo once, confirm repository completeness/secrets safety, confirm required submission links/files and submit through the official channel.
