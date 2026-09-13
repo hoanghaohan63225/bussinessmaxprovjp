@@ -9,7 +9,7 @@ Outputs: `AGENTS.md`, `docs/DECISION_LOG.md`, `docs/TASKS.md`
 Owner: ChatGPT
 Status: DONE / FROZEN
 Output: `docs/ROUND2_PRODUCT_SPEC.md`
-Decisions D-001 through D-008 are approved and reflected in the frozen spec.
+Decisions D-001 through D-009 are approved and frozen.
 
 ## T2 — Product Spec Red Team Review
 Owner: ChatGPT acting in separate Red Team / QA role
@@ -20,12 +20,18 @@ Review findings resolved through approved decisions D-005 to D-008 plus low-cost
 ## T3 — Resolve Review and Freeze Spec
 Owner: ChatGPT
 Status: DONE
-Outputs: frozen `docs/ROUND2_PRODUCT_SPEC.md` and updated `docs/DECISION_LOG.md`.
+Outputs: frozen `docs/ROUND2_PRODUCT_SPEC.md`, updated `docs/DECISION_LOG.md`, and `docs/ROUND2_REQUIREMENTS_TRACE.md`.
 
 ## T4 — Implementation Plan
 Owner: Codex
 Status: READY — NEXT
-Input: `AGENTS.md`, frozen `docs/ROUND2_PRODUCT_SPEC.md`, `docs/DECISION_LOG.md`, `docs/TASKS.md`.
+Mandatory input, read in order:
+1. `AGENTS.md`
+2. `docs/ROUND2_PRODUCT_SPEC.md`
+3. `docs/ROUND2_REQUIREMENTS_TRACE.md`
+4. `docs/DECISION_LOG.md`
+5. `docs/TASKS.md`
+
 Output: minimal implementation plan only; no product code yet.
 
 Codex must state for each step:
@@ -42,6 +48,8 @@ Priority order:
 4. tests;
 5. readability;
 6. visual polish.
+
+Important: `docs/ROUND2_REQUIREMENTS_TRACE.md` identifies deliberate PARTIAL/GAP coverage. Codex must not expand scope to close those gaps unless ChatGPT Team Lead approves a new decision.
 
 ## T5 — MVP Build
 Owner: Codex
