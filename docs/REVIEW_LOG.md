@@ -12,9 +12,9 @@ The original pre-build review identified three P0 design risks:
 
 These were resolved and frozen through D-005, D-006 and D-007. Low-cost semantic, warranty, normalisation, execution-mode and secrets clarifications were resolved through D-008 and the frozen Product Spec.
 
-## T6 static code review — PASS 1
+## T6 code review — STATIC + INTERACTIVE PASS
 
-Status: STATIC REVIEW COMPLETE; runtime closure still blocked on fresh local pytest + Streamlit smoke test.
+Status: all currently identified P0/P1 findings fixed; latest-build pytest rerun remains the only closure gate.
 
 Reviewed files:
 - `app.py`
@@ -26,84 +26,92 @@ Reviewed files:
 - `requirements.txt`
 - `README.md`
 
-### Finding T6-P0-01 — LLM could return an unsupported hard requirement without marking it unresolved
+### T6-P0-01 — Unsupported LLM hard requirement could be silently treated as satisfied
 
-**Risk:** If optional LLM mode returned a hard requirement such as ethical sourcing but omitted it from `unresolved_requirements`, deterministic feasibility logic could treat the request as if no unsupported hard requirement existed. That violates the frozen rule that missing evidence must not be treated as satisfied.
+**Fix:** `validate_intent()` now fails closed. Unsupported hard requirements are automatically added to `unresolved_requirements`; hard budget/delivery/warranty/gaming constraints with missing backing values are also forced unresolved. Product-level eligibility then blocks unverified hard requirements.
 
-**Fix applied:** `validate_intent()` now fails closed. Unsupported hard requirements are automatically added to `unresolved_requirements`; hard budget/delivery/warranty/gaming constraints with missing backing values are also forced unresolved. Product-level eligibility then blocks unverified hard requirements.
+**Regression test:** added.
 
-**Regression test added:** unsupported LLM hard requirement is forced unresolved and prevents recommendation.
+Status: FIXED.
 
-Status: FIXED — requires local pytest confirmation.
+### T6-P1-01 — Missing LLM preference dimensions could silently receive neutral defaults
 
-### Finding T6-P1-01 — Missing LLM preference dimensions could silently receive 0.5 defaults
+**Fix:** missing preference dimensions are safely defaulted to 0.5 and an explicit assumption records which dimensions were defaulted.
 
-**Risk:** D-008 requires neutral defaults to be documented or explicitly recorded as assumptions.
+**Regression test:** added.
 
-**Fix applied:** missing preference dimensions are still safely defaulted to 0.5, but an explicit assumption is appended listing the defaulted dimensions.
+Status: FIXED.
 
-**Regression test added.**
+### T6-P1-02 — Non-finite intent numerics not rejected explicitly
 
-Status: FIXED — requires local pytest confirmation.
+**Fix:** numeric constraints and preference weights must be finite and in range before downstream economics logic runs.
 
-### Finding T6-P1-02 — Non-finite intent numeric values were not rejected explicitly
+**Regression test:** added.
 
-**Risk:** Non-standard LLM JSON or malformed inputs could pass a NaN-like numeric through initial validation and later break Decimal/economics logic.
+Status: FIXED.
 
-**Fix applied:** numeric constraints and preference weights must be finite as well as in range.
+### T6-P1-03 — Failed rerun could leave a stale previous pipeline visible
 
-**Regression test added.**
+**Fix:** `app.py` clears current pipeline and transaction state before each explicit run. Input-signature changes also clear stale state.
 
-Status: FIXED — requires local pytest confirmation.
+**Interactive evidence:** user changed the request after an accepted transaction; the new impossible-request result showed `no_feasible_offer` and the prior transaction was no longer presented as current.
 
-### Finding T6-P1-03 — A failed rerun could leave a previous pipeline visible
+Status: FIXED / INTERACTIVE PASS.
 
-**Risk:** If a rerun with the same input failed validation/API execution, stale offer state could remain visible and potentially confuse the demo.
+### T6-P1-04 — Streamlit secrets path was ignored by app-level key lookup
 
-**Fix applied:** `app.py` clears current pipeline and transaction state before every explicit pipeline run. Input-signature changes already clear stale state as well.
+**Fix:** app checks environment variables first, then Streamlit secrets, and still works without any key.
 
-Status: FIXED — requires Streamlit smoke confirmation.
+Status: FIXED.
 
-### Finding T6-P1-04 — Streamlit secrets path was ignored by app-level key lookup
+### T6-P1-05 — Earlier emergency report overstated repository test evidence
 
-**Risk:** The spec permits environment variables or Streamlit secrets. Supporting only environment variables is not fatal, but makes hosted/demo configuration less flexible.
-
-**Fix applied:** app now checks environment variables first, then Streamlit secrets, and still works without any key.
-
-Status: FIXED — static review only.
-
-### Finding T6-P1-05 — Earlier emergency report overstated repository test evidence
-
-**Problem:** An earlier working copy produced a `28 passed` result, but the exact extended test set was not identical to the final committed `tests/test_core.py`.
-
-**Fix applied:** `docs/EMERGENCY_BUILD_REPORT.md` now explicitly states that the old 28-pass count is not proof for the current repository. The committed suite must be rerun locally before T5/T6 can be closed.
+**Fix:** `docs/EMERGENCY_BUILD_REPORT.md` and runtime records distinguish the earlier working-copy result from exact repository evidence. The valid observed local result before the final gaming regression fix was `14 passed in 10.51s`.
 
 Status: FIXED / DOCUMENTATION CORRECTED.
 
-## Remaining runtime gate
+### T6-P1-06 — Generic performance tag could satisfy a hard gaming requirement
 
-Before T6 can be marked DONE, run the exact committed repository locally:
+**Problem:** initial success-flow screenshots showed `CreatorPro 15` as an eligible candidate for a hard gaming request because the product-level rule treated generic `performance` as sufficient gaming capability evidence.
 
-```bash
-pip install -r requirements.txt
-python -m pytest -q
-python -m streamlit run app.py
+**Risk:** hard capability constraints become too permissive and the system can overstate product suitability.
+
+**Fix:** hard `gaming` now requires an explicit `gaming` or `gpu` catalogue tag. Generic `performance` can still affect soft semantic fit but cannot satisfy the immutable hard gaming capability requirement.
+
+**Regression test:** added to reject `CreatorPro 15` for the hard gaming request.
+
+**Interactive evidence:** on the latest downloaded build, catalogue matching contained only `NovaForge G15`, `TitanEdge 16` and `ValueStrike 15`; `CreatorPro 15` was absent.
+
+Status: FIXED / INTERACTIVE PASS.
+
+## Latest-build interactive verification
+
+Confirmed on the user's machine:
+
+1. Streamlit launches successfully at `localhost:8501` without an API key.
+2. Default gaming request runs in `Controlled mapping` mode.
+3. Latest catalogue matching respects the hard gaming-capability fix.
+4. A feasible B2A offer is produced.
+5. Explicit buyer acceptance produces `transaction_ready` with synthetic `order_intent` and `payment_status = not_processed_demo`.
+6. An impossible request returns explicit `no_feasible_offer` without crashing.
+7. Changing the request after acceptance clears the stale accepted result.
+
+## Remaining closure gate
+
+Run on the latest downloaded ZIP:
+
+```powershell
+py -m pytest -q
 ```
 
-Required manual observations:
-1. default gaming request returns `offer_available`;
-2. accepted current offer produces `transaction_ready`;
-3. an impossible budget/request returns explicit `no_feasible_offer` without crashing;
-4. editing the request after acceptance clears the stale transaction;
-5. controlled mapping/fallback works with no API key;
-6. no secret is committed or displayed.
+The prior observed local result (`14 passed in 10.51s`) predates the newest regression test. Do not claim a final latest-build pass until the new command result is observed.
 
 ## Non-blocking limitations retained intentionally
 
-- Optional Gemini mode is not required for the demo and has not been runtime-validated in this environment.
+- Optional Gemini mode is not required for the demo and is not part of the reliable submission path.
 - No dynamic bundles, live LLM-to-LLM pair, real payment, production checkout backend, database, auth, scraping, multi-category or multi-round negotiation.
 - Buyer-fit/economic scores are illustrative deterministic demo metrics, not measured purchase probability or sales uplift.
 
 ## Current reviewer recommendation
 
-Do not add new features. Complete the local runtime gate, then close T5/T6 and move immediately to submission documentation and pitch readiness.
+Do not add new features. Run the final latest-build pytest once, then close T5/T6 and move entirely to submission documentation, pitch rehearsal and final submission.
