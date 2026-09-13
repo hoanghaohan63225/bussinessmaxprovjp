@@ -1,7 +1,9 @@
 from decimal import Decimal
 from pathlib import Path
 
-from src.intent import controlled_mapping, decode_intent, decode_preset
+import pytest
+
+from src.intent import controlled_mapping, decode_intent, decode_preset, validate_intent
 from src.matcher import evaluate_products, load_catalog, product_level_eligibility
 from src.optimizer import assess_offer, assess_scenarios, build_b2a_response, build_transaction_handoff, generate_scenarios, safe_minmax, select_best_offer
 
@@ -14,6 +16,22 @@ def _products():
 
 def _intent():
     return decode_preset("Gaming under AUD 1,300")[0]
+
+
+def _llm_shape(**overrides):
+    value = {
+        "use_case": "gaming",
+        "budget_max": 1300.0,
+        "delivery_days_max": 3,
+        "warranty_years_min": 2,
+        "hard_requirements": ["gaming", "budget", "delivery", "warranty"],
+        "preferences": {"performance": 0.9, "portability": 0.3, "battery": 0.4},
+        "requested_attributes": [],
+        "unresolved_requirements": [],
+        "assumptions": [],
+    }
+    value.update(overrides)
+    return value
 
 
 def test_catalogue_and_stock_guard():
@@ -35,9 +53,40 @@ def test_paraphrase_semantics():
 def test_llm_failure_falls_back_without_relaxing_budget():
     def bad_decoder(text, key):
         return {"bad": "shape"}
+
     intent, mode, reason = decode_intent("gaming laptop under AUD 1300", prefer_llm=True, api_key="demo", llm_decoder=bad_decoder)
     assert mode == "controlled_mapping" and reason
     assert intent["budget_max"] == 1300
+
+
+def test_llm_unsupported_hard_requirement_is_forced_unresolved():
+    def decoder(text, key):
+        return _llm_shape(hard_requirements=["budget", "ethical sourcing"])
+
+    intent, mode, reason = decode_intent("Only ethical options under AUD 1300", prefer_llm=True, api_key="demo", llm_decoder=decoder)
+    assert mode == "llm" and reason is None
+    assert "ethical sourcing" in intent["unresolved_requirements"]
+    eligible, rejected = evaluate_products(_products(), intent)
+    assert not eligible
+    assert rejected
+    assert all(any(r.startswith("unverified_hard_requirement") for r in item["reasons"]) for item in rejected)
+
+
+def test_llm_missing_preference_dimensions_get_neutral_defaults_and_assumption():
+    def decoder(text, key):
+        return _llm_shape(preferences={"performance": 0.9})
+
+    intent, mode, _ = decode_intent("Gaming laptop", prefer_llm=True, api_key="demo", llm_decoder=decoder)
+    assert mode == "llm"
+    assert intent["preferences"]["portability"] == 0.5
+    assert intent["preferences"]["battery"] == 0.5
+    assert any("defaulted to neutral 0.5" in item for item in intent["assumptions"])
+
+
+def test_nonfinite_numeric_intent_is_rejected():
+    bad = _llm_shape(budget_max=float("nan"))
+    with pytest.raises(ValueError):
+        validate_intent(bad)
 
 
 def test_product_over_base_budget_survives_pre_optimizer():
@@ -89,6 +138,17 @@ def test_safe_normalization_and_deterministic_selection():
     a = select_best_offer(feasible)
     b = select_best_offer(list(reversed(feasible)))
     assert a["offer_id"] == b["offer_id"]
+
+
+def test_no_feasible_offer_returns_explicit_failure_state():
+    intent = _intent()
+    intent["budget_max"] = 500.0
+    eligible, _ = evaluate_products(_products(), intent)
+    feasible, _ = assess_scenarios([s for c in eligible for s in generate_scenarios(c)], intent)
+    assert not feasible
+    response = build_b2a_response(intent, None, intent_mode="fallback_preset", no_eligible=not eligible)
+    assert response["status"] == "no_feasible_offer"
+    assert response["reason"]
 
 
 def test_end_to_end_response_and_transaction_handoff():
