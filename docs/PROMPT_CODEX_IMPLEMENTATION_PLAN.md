@@ -23,6 +23,11 @@ DO NOT write product code yet.
 DO NOT create implementation files yet.
 DO NOT change the frozen spec, requirements trace or decision log.
 
+You MAY create exactly one planning artifact:
+- `docs/CODEX_IMPLEMENTATION_PLAN.md`
+
+This planning file is the required handoff to the Team Lead.
+
 For each proposed implementation step, state:
 - task ID;
 - exact files to create/change;
@@ -82,10 +87,14 @@ If fewer files are materially faster and remain testable, explain the simplifica
 - At least one paraphrase test is required.
 - Transaction handoff is synthetic only; no real payment integration.
 
-## Output
-Return the implementation plan only and stop for Team Lead approval.
+## Required output and handoff
+1. Create or update `docs/CODEX_IMPLEMENTATION_PLAN.md` with the complete implementation plan.
+2. Commit that planning file to the repository.
+3. Do not modify any product code or implementation files yet.
+4. In chat, return only a brief confirmation that the plan was committed, including the file path and commit SHA if available.
+5. Stop and wait for Team Lead approval.
 
-At the beginning of your response, explicitly confirm that you read all five mandatory files and briefly state:
+At the beginning of `docs/CODEX_IMPLEMENTATION_PLAN.md`, explicitly confirm that you read all five mandatory files and briefly state:
 - the required core flow;
 - the difference between product-level eligibility and offer-level feasibility;
 - the known accepted gaps from `ROUND2_REQUIREMENTS_TRACE.md` that you will NOT implement unless separately approved.
