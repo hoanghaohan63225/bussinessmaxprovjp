@@ -42,6 +42,17 @@ def test_catalogue_and_stock_guard():
     assert not ok and "out_of_stock" in reasons
 
 
+def test_hard_gaming_requires_explicit_gaming_or_gpu_evidence():
+    products = _products()
+    creator = next(p for p in products if p["product_id"] == "LAP-003")
+    ok, reasons = product_level_eligibility(creator, _intent())
+    assert not ok
+    assert "gaming_capability_not_verified" in reasons
+
+    eligible, _ = evaluate_products(products, _intent())
+    assert all(p["product_id"] != "LAP-003" for p in eligible)
+
+
 def test_paraphrase_semantics():
     a = controlled_mapping("strong GPU for modern games under AUD 1300")
     b = controlled_mapping("gaming performance matters most, budget up to AUD 1300")
