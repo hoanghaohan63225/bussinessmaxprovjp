@@ -7,7 +7,7 @@ Source priority: FPT Round 2 Problem Statement > frozen Product Spec / Decisions
 The original pre-build P0 design risks around budget ordering, shipping economics and transaction handoff were resolved through D-005, D-006 and D-007. Low-cost semantic, warranty, normalisation, execution-mode and secrets clarifications were resolved through D-008 and the frozen Product Spec.
 
 ## T6 code review
-Status: STATIC + INTERACTIVE PASS / FINAL LATEST-BUILD PYTEST PENDING
+Status: DONE — static review, interactive smoke and latest-build pytest all passed.
 
 ### Fixed findings
 - Unsupported LLM hard requirements fail closed as unresolved.
@@ -16,7 +16,7 @@ Status: STATIC + INTERACTIVE PASS / FINAL LATEST-BUILD PYTEST PENDING
 - Reruns clear stale pipeline and transaction state.
 - API key lookup supports environment variables and Streamlit secrets while remaining optional.
 - Hard gaming requires explicit `gaming` or `gpu` catalogue evidence; generic `performance` is soft fit only.
-- Regression tests were added for the safety behaviours.
+- Regression tests cover the safety behaviours.
 
 ### Interactive verification confirmed on latest build
 - Streamlit launches at `localhost:8501` without an API key.
@@ -27,22 +27,30 @@ Status: STATIC + INTERACTIVE PASS / FINAL LATEST-BUILD PYTEST PENDING
 - Impossible request returns `no_feasible_offer` without crashing.
 - Changing request after acceptance clears stale accepted state.
 
-### Evidence correction
-A screenshot showing `15 passed in 0.73s` was initially interpreted as the newly requested final pytest rerun. The user clarified it was from the previous run. Therefore that screenshot is not used to close the current latest-build pytest gate.
-
-## Remaining closure gate
-Run on the latest downloaded ZIP:
+### Final latest-build pytest
+The user stopped Streamlit and ran a fresh command in the latest downloaded folder:
 
 ```powershell
 py -m pytest -q
 ```
 
-T6 becomes DONE only after the fresh result is observed.
+Observed fresh result:
+
+```text
+............... [100%]
+15 passed in 0.48s
+```
+
+Status: PASS.
+
+### Evidence clarification
+An earlier screenshot containing `15 passed in 0.73s` was temporarily ambiguous and therefore was not used for closure. The later fresh rerun above (`15 passed in 0.48s`) is the final valid evidence.
 
 ## Non-blocking limitations
 - Optional Gemini mode is not required for the reliable demo path.
 - No dynamic bundles, live LLM-to-LLM pair, real payment, production checkout backend, database, auth, scraping, multi-category or multi-round negotiation.
 - Buyer-fit/economic scores are illustrative deterministic demo metrics, not measured purchase probability or sales uplift.
+- Streamlit emits a non-blocking deprecation warning for `use_container_width`; this does not affect the demonstrated flow.
 
 ## Reviewer recommendation
-Do not add features. Complete the one fresh latest-build pytest run, then move fully to submission documentation and rehearsal.
+T5/T6/T7 are complete. Do not add product features. Move fully to submission documentation, pitch/demo rehearsal, repository hygiene and final submission.
