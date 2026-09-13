@@ -14,6 +14,17 @@ from src.optimizer import assess_scenarios, build_b2a_response, build_transactio
 CATALOG_PATH = Path(__file__).parent / "data" / "catalog.csv"
 DEFAULT_REQUEST = "I need a gaming laptop under AUD 1,300, strong GPU performance, delivery within 3 days, and at least 2 years of warranty. I care more about gaming performance than portability."
 
+
+def _get_api_key() -> str | None:
+    key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if key:
+        return key
+    try:
+        return st.secrets.get("GEMINI_API_KEY") or st.secrets.get("GOOGLE_API_KEY")
+    except Exception:
+        return None
+
+
 st.set_page_config(page_title="bussinessmaxprovjp", layout="wide")
 st.title("bussinessmaxprovjp")
 st.caption("Merchant-side B2A offer intelligence demo · synthetic catalogue and economics")
@@ -22,7 +33,7 @@ st.info("Synthetic hackathon demo. No real payment is processed and no real-worl
 mode_label = st.sidebar.selectbox("Intent execution mode", ["Controlled mapping", "Fallback preset", "LLM mode (optional Gemini)"])
 preset_name = st.sidebar.selectbox("Demo preset", list(PRESETS)) if mode_label == "Fallback preset" else None
 request_text = st.text_area("Buyer Agent Request", value=DEFAULT_REQUEST, height=120)
-api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+api_key = _get_api_key()
 
 signature = hashlib.sha1(f"{mode_label}|{preset_name}|{request_text}".encode()).hexdigest()
 if st.session_state.get("input_signature") not in (None, signature):
@@ -31,6 +42,9 @@ if st.session_state.get("input_signature") not in (None, signature):
 st.session_state["input_signature"] = signature
 
 if st.button("Run merchant pipeline", type="primary"):
+    # Never leave a stale offer visible if this run fails validation or an API call errors.
+    st.session_state.pop("pipeline", None)
+    st.session_state.pop("transaction", None)
     try:
         products = load_catalog(CATALOG_PATH)
         if mode_label == "Fallback preset":
@@ -42,8 +56,18 @@ if st.button("Run merchant pipeline", type="primary"):
         feasible, rejected_scenarios = assess_scenarios(scenarios, intent)
         selected = select_best_offer(feasible)
         response = build_b2a_response(intent, selected, intent_mode=intent_mode, no_eligible=not eligible)
-        st.session_state["pipeline"] = {"intent": intent, "intent_mode": intent_mode, "fallback_reason": fallback_reason, "eligible": eligible, "rejected_products": rejected_products, "scenario_count": len(scenarios), "feasible_count": len(feasible), "rejected_scenarios": rejected_scenarios, "selected": selected, "response": response}
-        st.session_state.pop("transaction", None)
+        st.session_state["pipeline"] = {
+            "intent": intent,
+            "intent_mode": intent_mode,
+            "fallback_reason": fallback_reason,
+            "eligible": eligible,
+            "rejected_products": rejected_products,
+            "scenario_count": len(scenarios),
+            "feasible_count": len(feasible),
+            "rejected_scenarios": rejected_scenarios,
+            "selected": selected,
+            "response": response,
+        }
     except Exception as exc:
         st.error(f"Pipeline validation error: {exc}")
 
@@ -57,7 +81,18 @@ if pipeline:
     st.json(pipeline["intent"])
 
     st.subheader("2. Catalogue Matching")
-    rows = [{"product_id": p["product_id"], "name": p["name"], "buyer_fit": round(p["match"]["buyer_fit"], 3), "use_case_fit": round(p["match"]["components"]["use_case_fit"], 3), "performance_fit": round(p["match"]["components"]["performance_fit"], 3), "portability_fit": round(p["match"]["components"]["portability_fit"], 3), "battery_fit": round(p["match"]["components"]["battery_fit"], 3)} for p in pipeline["eligible"]]
+    rows = [
+        {
+            "product_id": p["product_id"],
+            "name": p["name"],
+            "buyer_fit": round(p["match"]["buyer_fit"], 3),
+            "use_case_fit": round(p["match"]["components"]["use_case_fit"], 3),
+            "performance_fit": round(p["match"]["components"]["performance_fit"], 3),
+            "portability_fit": round(p["match"]["components"]["portability_fit"], 3),
+            "battery_fit": round(p["match"]["components"]["battery_fit"], 3),
+        }
+        for p in pipeline["eligible"]
+    ]
     if rows:
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
     else:
@@ -74,7 +109,10 @@ if pipeline:
         c2.metric("Offer price", f"AUD {selected['offer_price']:.2f}")
         c3.metric("Buyer total", f"AUD {selected['buyer_total_price']:.2f}")
         c4.metric("Warranty", f"{selected['warranty_years']} years")
-        st.write(f"Buyer fit **{selected['buyer_fit']:.3f}** · merchant contribution margin **{float(selected['contribution_margin_rate']):.1%}** · combined offer score **{selected['offer_score']:.3f}**")
+        st.write(
+            f"Buyer fit **{selected['buyer_fit']:.3f}** · merchant contribution margin "
+            f"**{float(selected['contribution_margin_rate']):.1%}** · combined offer score **{selected['offer_score']:.3f}**"
+        )
         st.caption("Economics shown are synthetic/illustrative merchant-side values.")
     else:
         st.error(pipeline["response"]["reason"])
