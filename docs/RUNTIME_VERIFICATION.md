@@ -1,10 +1,14 @@
 # Runtime Verification
 
 Owner: User machine + ChatGPT Team Lead
-Status: INTERACTIVE SMOKE PASS / FINAL LATEST-BUILD PYTEST PENDING
+Status: PASS — latest-build pytest and interactive Streamlit smoke tests confirmed.
 
-## Confirmed
-- Windows + Python 3.14.5.
+## Environment
+- OS: Windows
+- Python: 3.14.5
+- Latest downloaded repository folder observed: `bussinessmaxprovjp-main (1)\bussinessmaxprovjp-main`
+
+## Confirmed runtime checks
 - Dependencies installed successfully.
 - Streamlit launches at `localhost:8501` without an API key.
 - Latest-build default gaming flow works.
@@ -13,16 +17,26 @@ Status: INTERACTIVE SMOKE PASS / FINAL LATEST-BUILD PYTEST PENDING
 - Impossible request produces explicit `no_feasible_offer` without crashing.
 - Changing the request after acceptance clears stale accepted state.
 
-## Test evidence
-An earlier repository state passed `14 passed in 10.51s`.
-
-A screenshot later showed `15 passed in 0.73s`, but the user clarified that this screenshot was from the previous run and was not the newly requested final pytest rerun. Therefore it is not used as final closure evidence.
-
-## Remaining gate
-Run on the latest downloaded ZIP:
+## Final latest-build pytest evidence
+After stopping Streamlit, the user ran a fresh command in the latest downloaded folder:
 
 ```powershell
 py -m pytest -q
 ```
 
-Only after the fresh result is observed should T5/T6 be marked DONE.
+Observed fresh result:
+
+```text
+............... [100%]
+15 passed in 0.48s
+```
+
+Result: PASS.
+
+This fresh result supersedes the earlier ambiguous screenshot and is the valid final closure evidence for the latest downloaded build.
+
+## Non-blocking warning
+The current Streamlit version prints a deprecation warning for `use_container_width`. This does not affect the demonstrated product flow and is not treated as a submission blocker.
+
+## Final runtime conclusion
+T5 runtime acceptance is complete. T6 runtime closure is complete for all currently identified P0/P1 findings. No additional product feature work is required before submission documentation, pitch rehearsal and final submission checks.
