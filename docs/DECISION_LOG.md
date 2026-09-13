@@ -90,6 +90,30 @@ Decision:
 
 Reason: Give Codex enough challenge context to understand why each module exists without polluting implementation context with historical/source documents or creating conflicting requirements.
 
+## D-010 — Approve Codex implementation plan
+Status: APPROVED / FROZEN
+
+Decision:
+- Approve `docs/CODEX_IMPLEMENTATION_PLAN.md` as the execution plan for T5.
+- Codex may implement T5.1 through T5.11 sequentially without requesting approval between every subtask.
+- Codex must stop and return to the Team Lead only if it encounters a P0 blocker, a conflict with the frozen Product Spec/Decisions, or a need to change product scope.
+- Controlled mapping and fallback must work end-to-end before optional external Gemini API integration is allowed to become a dependency.
+- Deterministic `pytest` business-logic coverage and manual end-to-end Streamlit smoke tests are mandatory. Automated Streamlit UI tests are optional if they are fast and stable.
+- Working end-to-end demo and correctness take priority over UI-test sophistication or decorative polish.
+
+Approved demo configuration from the Codex plan:
+- discount rates: 0%, 3%, 5%;
+- shipping scenarios: catalogue buyer fee or free-to-buyer while merchant shipping cost remains;
+- warranty: base or explicitly declared extension only;
+- synthetic `min_margin_rate = 0.10`;
+- balanced selection objective `alpha = 0.5`, `beta = 0.5`;
+- preference range 0..1 with documented neutral/default assumptions;
+- equal-value min-max normalisation returns 0.5;
+- deterministic tie-break: offer score descending, buyer total price ascending, then product/offer IDs;
+- AUD monetary arithmetic uses Decimal and deterministic cent rounding as proposed.
+
+Reason: The plan implements the frozen B2A core with bounded scope, explicit economics, offline reliability and sufficient testability while avoiding unnecessary architecture under the Round 2 deadline.
+
 ## Low-cost implementation clarifications accepted from review
 These do not change the frozen product concept:
 - Warranty scenarios must use declared options such as base warranty and explicit extended-warranty years/cost.
@@ -98,4 +122,4 @@ These do not change the frozen product concept:
 - Missing evidence remains `unverified`; explanations may only verbalise structured facts.
 
 ## Current gate
-`docs/ROUND2_PRODUCT_SPEC.md` and decisions D-001 through D-009 are FROZEN. Codex may proceed only with an implementation plan first. Product code must not be written until the plan has been reviewed by ChatGPT Team Lead.
+Decisions D-001 through D-010 and `docs/ROUND2_PRODUCT_SPEC.md` are FROZEN. T4 is approved. Codex is authorised to execute T5.1–T5.11 under `docs/PROMPT_CODEX_BUILD.md`. Any P0 blocker, frozen-spec conflict or scope change must stop implementation and return to ChatGPT Team Lead.
