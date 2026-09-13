@@ -109,7 +109,11 @@ def product_level_eligibility(product: dict[str, Any], intent: dict[str, Any]) -
             reasons.append("warranty_impossible")
 
     hard = set(intent.get("hard_requirements", []))
-    if "gaming" in hard and _use_case_fit("gaming", product["tags"]) < 0.75:
+    tags = set(product["tags"])
+    # A hard gaming capability must be backed by an explicit gaming/GPU tag.
+    # Generic performance evidence may influence soft fit but is not enough to
+    # satisfy an immutable gaming capability requirement.
+    if "gaming" in hard and not ({"gaming", "gpu"} & tags):
         reasons.append("gaming_capability_not_verified")
 
     unresolved = set(intent.get("unresolved_requirements", []))
