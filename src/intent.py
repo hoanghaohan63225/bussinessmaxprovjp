@@ -9,6 +9,7 @@ import json
 import os
 import re
 from copy import deepcopy
+from math import isfinite
 from typing import Any, Callable
 
 NEUTRAL_PREFERENCES = {"performance": 0.5, "portability": 0.5, "battery": 0.5}
@@ -157,29 +158,50 @@ def validate_intent(intent: dict[str, Any]) -> dict[str, Any]:
         if key not in out:
             raise ValueError(f"Missing intent field: {key}")
 
+    for list_key in ("hard_requirements", "requested_attributes", "unresolved_requirements", "assumptions"):
+        if not isinstance(out[list_key], list) or not all(isinstance(x, str) for x in out[list_key]):
+            raise ValueError(f"{list_key} must be a list of strings")
+
     for key in ("budget_max", "delivery_days_max", "warranty_years_min"):
         value = out[key]
         if value is not None:
-            if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(float(value)) or value < 0:
                 raise ValueError(f"Invalid {key}")
 
     prefs = out["preferences"]
     if not isinstance(prefs, dict):
         raise ValueError("preferences must be an object")
+    defaulted_preferences: list[str] = []
     for key in NEUTRAL_PREFERENCES:
         if key not in prefs:
             prefs[key] = 0.5
+            defaulted_preferences.append(key)
         value = prefs[key]
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= float(value) <= 1:
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(float(value)) or not 0 <= float(value) <= 1:
             raise ValueError(f"Invalid preference: {key}")
         prefs[key] = float(value)
-
-    for list_key in ("hard_requirements", "requested_attributes", "unresolved_requirements", "assumptions"):
-        if not isinstance(out[list_key], list) or not all(isinstance(x, str) for x in out[list_key]):
-            raise ValueError(f"{list_key} must be a list of strings")
+    if defaulted_preferences:
+        out["assumptions"].append(
+            "Missing preference dimensions defaulted to neutral 0.5: " + ", ".join(defaulted_preferences) + "."
+        )
 
     if out["use_case"] is not None and not isinstance(out["use_case"], str):
         raise ValueError("use_case must be string or null")
+
+    # Fail closed on hard requirements that deterministic logic cannot verify.
+    hard = set(out["hard_requirements"])
+    unresolved = set(out["unresolved_requirements"])
+    supported_hard = {"budget", "delivery", "warranty", "gaming"}
+    unresolved.update(requirement for requirement in hard if requirement not in supported_hard)
+    if "budget" in hard and out["budget_max"] is None:
+        unresolved.add("budget")
+    if "delivery" in hard and out["delivery_days_max"] is None:
+        unresolved.add("delivery")
+    if "warranty" in hard and out["warranty_years_min"] is None:
+        unresolved.add("warranty")
+    if "gaming" in hard and out.get("use_case") != "gaming":
+        unresolved.add("gaming")
+    out["unresolved_requirements"] = sorted(unresolved)
     return out
 
 
