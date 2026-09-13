@@ -1,7 +1,7 @@
 # Runtime Verification
 
 Owner: User machine + ChatGPT Team Lead
-Status: PARTIAL PASS — exact committed pytest suite passed on the downloaded build; success-flow Streamlit smoke passed. One logic issue exposed by screenshots was fixed on GitHub and requires a fresh local rerun before final closure.
+Status: INTERACTIVE SMOKE PASS — latest-build success/failure/transaction flows confirmed; one final latest-build pytest run still required for full closure.
 
 ## Environment
 
@@ -19,7 +19,7 @@ py -m pip install -r requirements.txt
 
 Result: PASS. Streamlit, Pandas, pytest, google-genai and transitive dependencies installed successfully.
 
-## Exact downloaded-build test suite
+## Earlier exact downloaded-build test suite
 
 Command:
 
@@ -27,14 +27,14 @@ Command:
 py -m pytest -q
 ```
 
-Observed result on user machine before the latest gaming-capability regression fix:
+Observed result on the user machine before the latest gaming-capability regression fix:
 
 ```text
 .............. [100%]
 14 passed in 10.51s
 ```
 
-This was valid evidence for that downloaded repository state. A fresh test run is required after the latest GitHub fix because the current repository now has an additional regression test.
+This remains valid evidence for that earlier downloaded state only. The current GitHub repository contains an additional gaming-capability regression test, so one fresh pytest run on the latest ZIP is still required before final closure.
 
 ## Streamlit launch
 
@@ -46,41 +46,56 @@ py -m streamlit run app.py
 
 Result: PASS. Browser app loaded successfully at `localhost:8501` with no API key required.
 
-## Success-flow smoke test
+## Latest-build success-flow smoke test
 
-Observed on user machine:
+Observed on the user's newly downloaded latest build:
 
-- execution mode displayed `controlled mapping`;
-- default gaming request decoded to budget 1300, delivery 3 days, warranty 2 years, gaming hard requirement and performance-first preference;
-- catalogue matching rendered successfully;
-- bounded merchant optimisation generated multiple scenarios and returned a feasible offer;
-- selected offer: `NovaForge G15`, offer price / buyer total AUD 1281.55, 2-year warranty;
-- merchant contribution margin displayed 14.8%;
-- B2A JSON returned `offer_available`;
-- explicit buyer acceptance produced `transaction_ready` with synthetic `order_intent` and `payment_status = not_processed_demo`.
+- execution mode displayed `Controlled mapping`;
+- default gaming request ran without an API key;
+- catalogue matching now contains only explicit gaming-capable products:
+  - `LAP-001 NovaForge G15`
+  - `LAP-006 TitanEdge 16`
+  - `LAP-004 ValueStrike 15`
+- `CreatorPro 15` is no longer treated as eligible for the hard gaming requirement;
+- the merchant pipeline still produced a feasible recommended offer;
+- explicit buyer acceptance produced `transaction_ready`;
+- transaction payload contained a synthetic `order_intent`, AUD buyer total and `payment_status = not_processed_demo`.
 
-Result: SUCCESS FLOW PASS.
+Result: LATEST-BUILD SUCCESS FLOW PASS.
+
+## Latest-build failure / stale-state smoke test
+
+The user changed the buyer request after the successful accepted transaction to an impossible request:
+
+`I need a gaming laptop under AUD 500, delivery within 1 day, and at least 3 years of warranty.`
+
+Observed result:
+
+- decoded intent reflected budget 500, delivery 1 day, warranty 3 years and hard gaming requirement;
+- pipeline did not crash;
+- no product passed immutable product-level constraints;
+- machine-readable response returned `status = no_feasible_offer` with an explicit reason;
+- the prior accepted transaction was no longer presented as the current result, demonstrating stale accepted state was cleared when the request changed.
+
+Result: LATEST-BUILD FAILURE / STALE-STATE FLOW PASS.
 
 ## Runtime-discovered logic issue and fix
 
-The success-flow screenshots exposed that `CreatorPro 15` was still listed as eligible for a hard gaming request because the old product-level rule treated a generic `performance` tag as sufficient gaming capability evidence.
-
-This is too permissive for a hard capability constraint.
+The earlier success-flow screenshots exposed that `CreatorPro 15` was listed as eligible for a hard gaming request because the old product-level rule treated a generic `performance` tag as sufficient gaming-capability evidence.
 
 Fix applied on GitHub:
-- a hard `gaming` requirement now requires an explicit `gaming` or `gpu` catalogue tag;
-- generic `performance` may still influence soft semantic fit but cannot satisfy the immutable gaming capability requirement;
+- a hard `gaming` requirement requires an explicit `gaming` or `gpu` catalogue tag;
+- generic `performance` may influence soft semantic fit but cannot satisfy the immutable gaming capability requirement;
 - regression test added to ensure `CreatorPro 15` is rejected for the hard gaming request.
 
-Because the user downloaded the ZIP before this fix, final runtime closure requires downloading the latest repository state and rerunning tests + smoke checks.
+The latest-build screenshots confirm this fix works interactively.
 
-## Remaining interactive smoke checks on latest GitHub state
+## Remaining final runtime gate
 
-1. Fresh `py -m pytest -q` passes with the new regression test.
-2. Default gaming success flow still returns `offer_available` and `transaction_ready`.
-3. `CreatorPro 15` no longer appears as eligible for the hard gaming request.
-4. An impossible request returns explicit `no_feasible_offer` without crashing.
-5. Editing the request after acceptance clears the previous transaction.
-6. Controlled mapping/fallback works with no API key.
+Run once on the latest downloaded ZIP:
 
-T5/T6 close only after these latest-build checks are confirmed.
+```powershell
+py -m pytest -q
+```
+
+If the latest suite passes, T5/T6 runtime closure can be marked DONE. No additional feature work is required before documentation/submission preparation.
