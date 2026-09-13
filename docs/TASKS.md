@@ -30,8 +30,8 @@ Approved by D-010.
 
 ## T5 — MVP Build
 Owner: ChatGPT temporary implementation takeover after Codex quota/network interruption
-Status: CORE CODE COMMITTED / FRESH LOCAL RUNTIME GATE PENDING
-Evidence: `docs/EMERGENCY_BUILD_REPORT.md`
+Status: EXACT LOCAL TESTS PASS / STREAMLIT INTERACTIVE SMOKE PENDING
+Evidence: `docs/EMERGENCY_BUILD_REPORT.md`, `docs/RUNTIME_VERIFICATION.md`
 
 Committed implementation:
 - `app.py`
@@ -44,19 +44,23 @@ Committed implementation:
 - `tests/test_core.py`
 - `README.md`
 
-The earlier emergency working-copy `28 passed` result is not treated as proof for the current committed suite. A fresh run of the exact repository is required.
+Fresh user-machine verification on the downloaded repository:
+- Python 3.14.5 detected;
+- dependencies installed successfully with `py -m pip install -r requirements.txt`;
+- exact committed suite: `py -m pytest -q` -> **14 passed in 10.51s**;
+- `py -m streamlit run app.py` started Streamlit and reached the first-run onboarding prompt.
 
-Before marking T5 DONE, run on the user's machine:
-1. `pip install -r requirements.txt`
-2. `python -m pytest -q`
-3. `python -m streamlit run app.py`
-4. verify primary success flow reaches `transaction_ready`;
-5. verify one impossible/failure request returns an explicit no-feasible state;
-6. change the request after acceptance and confirm stale transaction state is cleared.
+Before marking T5 DONE, complete the interactive Streamlit checks:
+1. leave Streamlit onboarding email blank and press Enter;
+2. open the Local URL / browser page;
+3. verify primary success flow reaches `transaction_ready`;
+4. verify one impossible/failure request returns an explicit no-feasible state;
+5. change the request after acceptance and confirm stale transaction state is cleared;
+6. verify controlled mapping/fallback works without an API key.
 
 ## T6 — Code and Logic Review
 Owner: ChatGPT Red Team / QA
-Status: STATIC PASS 1 DONE / RUNTIME CLOSURE PENDING
+Status: STATIC PASS 1 DONE / EXACT PYTEST PASS / INTERACTIVE CLOSURE PENDING
 Output: `docs/REVIEW_LOG.md`
 
 Static review fixes already applied:
@@ -68,7 +72,7 @@ Static review fixes already applied:
 - regression tests cover the new safety behaviour and explicit no-feasible state;
 - emergency build verification evidence was corrected.
 
-T6 closes only after fresh local pytest and Streamlit smoke-test results are observed.
+T6 closes after the interactive Streamlit smoke-test results are observed.
 
 ## T7 — Fix Approved Issues
 Owner: ChatGPT implementation pass after QA findings
@@ -78,7 +82,8 @@ Current static P0/P1 fixes restore compliance with frozen scope and do not add f
 ## T8 — Submission Documentation
 Owner: ChatGPT
 Status: IN PROGRESS
-`README.md` exists. Remaining required outputs:
+Existing outputs:
+- `README.md`
 - `docs/SUBMISSION_CHECKLIST.md`
 - `pitch/PITCH_CONTENT.md`
 
