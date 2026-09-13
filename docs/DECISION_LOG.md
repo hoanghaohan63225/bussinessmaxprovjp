@@ -79,6 +79,17 @@ Decision:
 
 Reason: Demonstrate that the solution goes beyond literal keyword matching without overstating AI capability.
 
+## D-009 — Requirements trace for implementation agents
+Status: APPROVED / FROZEN
+
+Decision:
+- Maintain `docs/ROUND2_REQUIREMENTS_TRACE.md` as the compact bridge from the official FPT Round 2 requirements and Rulebook outputs to the frozen product response, implementation modules and demo evidence.
+- Codex must read this trace before producing the implementation plan or changing product code.
+- The trace may expose deliberate gaps/partial coverage, but Codex must not expand scope to close them without a new Team Lead decision.
+- Original source PDFs remain outside the current public repository under D-004.
+
+Reason: Give Codex enough challenge context to understand why each module exists without polluting implementation context with historical/source documents or creating conflicting requirements.
+
 ## Low-cost implementation clarifications accepted from review
 These do not change the frozen product concept:
 - Warranty scenarios must use declared options such as base warranty and explicit extended-warranty years/cost.
@@ -87,4 +98,4 @@ These do not change the frozen product concept:
 - Missing evidence remains `unverified`; explanations may only verbalise structured facts.
 
 ## Current gate
-`docs/ROUND2_PRODUCT_SPEC.md` may now be marked FROZEN. Codex may proceed only with an implementation plan first. Product code must not be written until the plan has been reviewed by ChatGPT Team Lead.
+`docs/ROUND2_PRODUCT_SPEC.md` and decisions D-001 through D-009 are FROZEN. Codex may proceed only with an implementation plan first. Product code must not be written until the plan has been reviewed by ChatGPT Team Lead.
