@@ -7,9 +7,11 @@ Outputs: `AGENTS.md`, `docs/DECISION_LOG.md`, `docs/TASKS.md`
 
 ## T1 — Round 2 Product Spec
 Owner: ChatGPT
-Status: IN PROGRESS
+Status: REVIEW
 Output: `docs/ROUND2_PRODUCT_SPEC.md`
 Must define: product, target users, demo flow, input/output schemas, semantic matching, merchant optimisation, architecture, MVP scope, out-of-scope, acceptance criteria.
+
+Current note: first draft is complete and ready for Gemini Red Team review.
 
 ## T2 — Product Spec Review
 Owner: Gemini
