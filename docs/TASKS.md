@@ -52,19 +52,26 @@ All approved P0/P1 fixes were applied without expanding the frozen product scope
 
 ## T8 — Submission Documentation
 Owner: ChatGPT
-Status: IN PROGRESS — NEXT
-Existing outputs:
-- `README.md`
-- `docs/SUBMISSION_CHECKLIST.md`
-- `pitch/PITCH_CONTENT.md`
+Status: PACKAGING NEAR COMPLETE / FINAL DECK REMAINS
 
-Next focus:
-- final README/document consistency pass;
-- repository hygiene / secrets / completeness check;
-- pitch/demo narrative refinement;
-- submission checklist completion.
+Ready:
+- `README.md`
+- `docs/SUBMISSION_CHECKLIST.md` updated against verified runtime evidence
+- `docs/SUBMISSION_STATUS.md`
+- `pitch/PITCH_CONTENT.md`
+- repository root checked for accidental source PDFs / virtualenv / credential files
+- `.gitignore` covers `.env`, Streamlit secrets, virtualenv and caches
+
+Remaining T8 output:
+- final Pitch Deck file/export based on `pitch/PITCH_CONTENT.md`.
 
 ## T9 — Final Verification
 Owner: User + ChatGPT
-Status: TODO
-Rehearse the primary demo once, confirm repository completeness/secrets safety, confirm required links/files and submit through the official channel.
+Status: TODO AFTER FINAL DECK
+
+Remaining actions:
+- visually confirm GitHub `main` and README;
+- decide whether the submission form requires/benefits from a public Streamlit URL;
+- rehearse the frozen 90-second demo once;
+- confirm final deck/link;
+- submit and save confirmation evidence.
