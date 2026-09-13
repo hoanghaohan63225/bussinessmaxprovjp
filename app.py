@@ -345,6 +345,177 @@ st.markdown(
             line-height: 1.45;
         }
 
+        .b2a-bot-stage {
+            position: fixed;
+            right: 1.7rem;
+            bottom: 1.15rem;
+            width: 76px;
+            height: 92px;
+            z-index: 9998;
+            pointer-events: none;
+            animation: b2a-patrol 14s ease-in-out infinite;
+            filter: drop-shadow(0 12px 15px rgba(15, 35, 55, 0.20));
+        }
+
+        .b2a-bot {
+            position: relative;
+            width: 68px;
+            height: 82px;
+            animation: b2a-bob 1.7s ease-in-out infinite;
+        }
+
+        .bot-antenna {
+            position: absolute;
+            top: 0;
+            left: 31px;
+            width: 6px;
+            height: 13px;
+            border-radius: 999px;
+            background: #134e6f;
+        }
+
+        .bot-antenna::before {
+            content: "";
+            position: absolute;
+            top: -5px;
+            left: -3px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #67e8f9;
+            border: 2px solid #0e7490;
+            box-shadow: 0 0 14px rgba(103,232,249,0.8);
+        }
+
+        .bot-head {
+            position: absolute;
+            top: 11px;
+            left: 8px;
+            width: 52px;
+            height: 37px;
+            border-radius: 15px 15px 13px 13px;
+            background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+            border: 3px solid #173b71;
+        }
+
+        .bot-face {
+            position: absolute;
+            inset: 6px 7px 7px;
+            border-radius: 11px;
+            background: linear-gradient(180deg, #10243e 0%, #0b1f36 100%);
+            overflow: hidden;
+        }
+
+        .bot-eye {
+            position: absolute;
+            top: 9px;
+            width: 8px;
+            height: 5px;
+            border-radius: 999px;
+            background: #67e8f9;
+            box-shadow: 0 0 7px rgba(103,232,249,0.9);
+            animation: b2a-blink 4.2s infinite;
+        }
+
+        .bot-eye.left { left: 8px; }
+        .bot-eye.right { right: 8px; }
+
+        .bot-mouth {
+            position: absolute;
+            left: 13px;
+            bottom: 5px;
+            width: 12px;
+            height: 5px;
+            border-bottom: 2px solid #67e8f9;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .bot-body {
+            position: absolute;
+            top: 47px;
+            left: 15px;
+            width: 38px;
+            height: 27px;
+            border-radius: 9px 9px 12px 12px;
+            background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+            border: 3px solid #173b71;
+        }
+
+        .bot-badge {
+            position: absolute;
+            left: 7px;
+            top: 6px;
+            width: 18px;
+            height: 11px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e0f2fe;
+            color: #0e7490;
+            font-size: 0.42rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+        }
+
+        .bot-arm {
+            position: absolute;
+            top: 51px;
+            width: 9px;
+            height: 22px;
+            border-radius: 8px;
+            background: #60a5fa;
+            border: 2px solid #173b71;
+        }
+
+        .bot-arm.left {
+            left: 7px;
+            transform: rotate(14deg);
+            transform-origin: top center;
+            animation: b2a-wave 2.4s ease-in-out infinite;
+        }
+
+        .bot-arm.right {
+            right: 7px;
+            transform: rotate(-10deg);
+        }
+
+        .bot-leg {
+            position: absolute;
+            top: 71px;
+            width: 10px;
+            height: 9px;
+            border-radius: 0 0 7px 7px;
+            background: #2563eb;
+            border: 2px solid #173b71;
+        }
+
+        .bot-leg.left { left: 20px; }
+        .bot-leg.right { right: 20px; }
+
+        @keyframes b2a-patrol {
+            0%, 100% { transform: translate3d(0, 0, 0); }
+            18% { transform: translate3d(-10vw, -5px, 0); }
+            42% { transform: translate3d(-30vw, 0, 0); }
+            58% { transform: translate3d(-24vw, -9px, 0); }
+            80% { transform: translate3d(-7vw, -3px, 0); }
+        }
+
+        @keyframes b2a-bob {
+            0%, 100% { transform: translateY(0) rotate(-1deg); }
+            50% { transform: translateY(-7px) rotate(1deg); }
+        }
+
+        @keyframes b2a-wave {
+            0%, 100% { transform: rotate(14deg); }
+            50% { transform: rotate(38deg); }
+        }
+
+        @keyframes b2a-blink {
+            0%, 44%, 48%, 100% { transform: scaleY(1); }
+            46% { transform: scaleY(0.12); }
+        }
+
         @media (max-width: 850px) {
             .trust-strip {
                 grid-template-columns: 1fr;
@@ -353,8 +524,44 @@ st.markdown(
             .hero {
                 padding: 1.6rem 1.35rem;
             }
+
+            .b2a-bot-stage {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .b2a-bot-stage,
+            .b2a-bot,
+            .bot-arm.left,
+            .bot-eye {
+                animation: none !important;
+            }
         }
     </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <div class="b2a-bot-stage" aria-hidden="true">
+        <div class="b2a-bot">
+            <div class="bot-antenna"></div>
+            <div class="bot-head">
+                <div class="bot-face">
+                    <span class="bot-eye left"></span>
+                    <span class="bot-eye right"></span>
+                    <span class="bot-mouth"></span>
+                </div>
+            </div>
+            <div class="bot-arm left"></div>
+            <div class="bot-arm right"></div>
+            <div class="bot-body"><div class="bot-badge">B2A</div></div>
+            <div class="bot-leg left"></div>
+            <div class="bot-leg right"></div>
+        </div>
+    </div>
     """,
     unsafe_allow_html=True,
 )
