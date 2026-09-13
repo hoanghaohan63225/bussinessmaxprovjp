@@ -2,7 +2,7 @@
 
 Owner: ChatGPT Team Lead temporarily executing T5 implementation after Codex quota/network interruption.
 
-Status: CORE CODE COMMITTED — local Streamlit smoke test still required on a machine with package/network access.
+Status: CORE CODE COMMITTED — local dependency install, pytest run and Streamlit smoke test still required on the user's machine.
 
 ## Why takeover happened
 
@@ -37,23 +37,21 @@ Buyer request -> validated intent -> product-level eligibility -> semantic match
 - Optional Gemini decoding falls back to controlled mapping.
 - No real checkout/payment, database, auth, FastAPI, React, scraping, multi-category, bundles, or negotiation were added.
 
-## Verification actually run
+## Verification evidence clarification
 
-In the Team Lead working environment, the equivalent core implementation was executed with:
+An earlier emergency working copy produced a `28 passed` pytest result before the final repository files were committed. That exact extended working-copy test set is not identical to the current committed `tests/test_core.py`, so **the earlier 28-pass count must not be presented as proof that the current repository test suite passed**.
 
-`python -m pytest -q`
+After the first static T6 review, the committed tests were expanded with regressions for:
+- unsupported LLM hard requirements being forced to `unresolved`;
+- explicit neutral defaults when LLM preference dimensions are missing;
+- non-finite intent numeric rejection;
+- explicit no-feasible-offer failure state.
 
-Result: **28 passed** after one parser edge-case fix (`only want ethical`).
+The current repository therefore requires a fresh local `pytest` run before T5 can be marked DONE.
 
-`python -m py_compile app.py src/intent.py src/matcher.py src/optimizer.py`
+## Required local verification
 
-Result: **passed**.
-
-The working environment already had Pandas and pytest. Streamlit was not installed. An attempt to install Streamlit / google-genai failed because that environment has no outbound package-network access, so a real Streamlit launch was **not** claimed as tested here.
-
-## Required next verification on the user's machine
-
-Run:
+Run from the repository root:
 
 ```bash
 pip install -r requirements.txt
@@ -66,6 +64,7 @@ Then verify:
 2. buyer can accept the current offer and see `transaction_ready`;
 3. a strict impossible request returns an explicit no-feasible state;
 4. changing the request does not reuse an old accepted transaction;
-5. no API key is required for controlled mapping / fallback preset.
+5. no API key is required for controlled mapping / fallback preset;
+6. if LLM mode is attempted without a valid key, the app visibly falls back rather than inventing facts.
 
-Only after this local smoke test should T5 be marked fully DONE and T6 final code review begin.
+Only after this local smoke test should T5 be marked fully DONE and T6 final code review be closed.
